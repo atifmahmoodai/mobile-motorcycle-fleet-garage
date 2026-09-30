@@ -2,6 +2,8 @@
 
 Workshop software for a garage that maintains delivery and courier motorcycle fleets. It has three parts: a **technician phone app** that keeps working without signal, a **manager dashboard** for jobs, bikes, parts and invoicing, and a **client portal** where each fleet sees its own bikes and reports problems.
 
+**Project guide (PDF):** [docs/PROJECT-GUIDE.pdf](docs/PROJECT-GUIDE.pdf) explains what this project is, the business problem it solves, the client's requirements, and how to build it from scratch, step by step.
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ## What it does
