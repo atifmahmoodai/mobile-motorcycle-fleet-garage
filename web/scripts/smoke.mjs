@@ -218,7 +218,7 @@ try {
   await page.goto(`${BASE}settings`);
   await page.waitForSelector("text=Service checklist");
   await page.goto(`${BASE}audit`);
-  await page.waitForSelector("text=job.complete");
+  await page.waitForSelector("td:has-text('Signed off job')");
   check(true, "activity log records sign-offs");
   await page.goto(BASE);
   await page.waitForSelector("h1:has-text('Workshop today')");

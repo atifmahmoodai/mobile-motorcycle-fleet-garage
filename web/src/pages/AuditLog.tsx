@@ -19,28 +19,24 @@ const LABELS: Record<string, string> = {
   "auth.login": "Signed in",
   "auth.login_failed": "Failed sign-in",
   "auth.password_changed": "Changed password",
-  "vehicle.create": "Added vehicle",
-  "vehicle.update": "Edited vehicle",
-  "vehicle.cost": "Added vehicle cost",
-  "customer.create": "Added customer",
-  "customer.update": "Edited customer",
-  "lead.create": "New lead",
-  "lead.update": "Updated lead",
-  "deal.create": "New deal",
-  "deal.update": "Edited deal",
-  "deal.submit": "Submitted deal",
-  "deal.approve": "Approved deal",
-  "deal.reject": "Sent deal back",
-  "deal.close": "Closed deal (sold)",
-  "deal.cancel": "Cancelled deal",
-  "service.create": "New service order",
-  "service.update": "Updated service order",
-  "service.close": "Closed service order",
-  "service.cancel": "Cancelled service order",
-  "document.upload": "Uploaded file",
-  "document.delete": "Deleted file",
-  "branch.create": "Added branch",
-  "branch.update": "Edited branch",
+  "client.create": "Added client",
+  "client.update": "Edited client",
+  "bike.create": "Added bike",
+  "bike.update": "Edited bike",
+  "job.create": "Opened job",
+  "job.defect_reported": "Client reported a problem",
+  "job.update": "Edited job",
+  "job.complete": "Signed off job",
+  "job.cancel": "Cancelled job",
+  "labour.update": "Corrected time",
+  "labour.delete": "Deleted time entry",
+  "photo.delete": "Deleted photo",
+  "part.create": "Added part",
+  "part.update": "Edited part",
+  "part.stock": "Stock movement",
+  "invoice.issue": "Issued invoice",
+  "invoice.paid": "Marked invoice paid",
+  "invoice.void": "Voided invoice",
   "settings.update": "Changed settings",
   "user.create": "Added user",
   "user.update": "Edited user",
@@ -48,14 +44,19 @@ const LABELS: Record<string, string> = {
 };
 
 function summary(e: AuditEntry): string {
-  const d = e.details;
-  if (e.action === "deal.close") return `${d.number} · stock ${d.stockNo}`;
-  if (e.action === "deal.reject" || e.action === "deal.cancel") return String(d.reason ?? "");
-  if (e.action === "vehicle.update" && d.listPriceTo !== undefined) return `${d.stockNo}: list price ${Number(d.listPriceFrom) / 100} → ${Number(d.listPriceTo) / 100}`;
-  if (e.entity === "vehicle" && d.stockNo) return String(d.stockNo);
-  if (e.action === "vehicle.cost") return `${d.description}: ${Number(d.amountCents) / 100}`;
-  if (e.action === "service.close") return `${d.number}${d.invoiceNo ? ` → ${d.invoiceNo}` : " → cost posted to vehicle"}`;
-  if (e.entity === "document" || e.action.startsWith("document.")) return String(d.filename ?? "");
+  const d = e.details as Record<string, unknown>;
+  if (e.action === "bike.update") {
+    const odo = d.odometer as { from: number; to: number } | undefined;
+    return [d.plate, odo ? `odometer ${odo.from} → ${odo.to} km` : "", d.client ? "moved to another client" : "", d.retired ? "retired" : ""].filter(Boolean).join(" · ");
+  }
+  if (e.entity === "bike" && d.plate) return String(d.plate);
+  if ((e.action === "job.create" || e.action === "job.defect_reported") && d.number) return `${d.number} · ${d.plate}`;
+  if (e.action === "job.complete") return `odometer ${d.odometerKm} km${d.followUp ? " · follow-up repair opened" : ""}`;
+  if (e.action === "job.cancel") return String(d.reason ?? "");
+  if (e.action === "part.stock") return `${Number(d.qty) > 0 ? "+" : ""}${d.qty} (${d.reason})${d.note ? ` · ${d.note}` : ""}`;
+  if (e.action === "invoice.issue") return `${d.number} · ${d.jobs} job(s)`;
+  if (e.entity === "client" && d.name) return String(d.name);
+  if (e.entity === "part" && d.sku) return String(d.sku);
   if (e.action === "user.create") return `${d.email} (${d.role})`;
   return "";
 }

@@ -71,7 +71,15 @@ export async function buildApp(config: Config, db: pg.Pool): Promise<FastifyInst
     await app.register(compress, { threshold: 2048 });
   await app.register(cookie);
   await app.register(multipart);
-  await app.register(rateLimit, { max: config.RATE_LIMIT_PER_MIN, timeWindow: "1 minute", allowList: (req) => req.url === "/healthz" || req.url === "/readyz" });
+  await app.register(rateLimit, {
+    max: config.RATE_LIMIT_PER_MIN,
+    timeWindow: "1 minute",
+    allowList: (req) => req.url === "/healthz" || req.url === "/readyz",
+    // The limiter's hook runs at route level, after the global onRequest hook below has checked the
+    // session. So signed-in traffic is counted per verified session rather than per IP (a whole office
+    // usually shares one address), while unknown or fake cookies count against the IP.
+    keyGenerator: (req) => (req.session ? `s:${req.session.sessionId}` : `ip:${req.ip}`),
+  });
 
   app.addHook("onRequest", async (req, reply) => {
     reply.header("x-request-id", req.id);
