@@ -63,7 +63,7 @@ jobs:
           for i in $(seq 1 40); do curl -fs http://localhost:8080/readyz && break; sleep 1; done
           curl -fs http://localhost:8080/readyz
           curl -fs http://localhost:8080/ | grep -q 'id="root"'
-          test "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/vehicles)" = 401
+          test "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/bikes)" = 401
       - name: Logs on failure
         if: failure()
         run: docker logs app || true
